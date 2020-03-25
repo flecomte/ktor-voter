@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.3.70"
+    id("org.jlleitschuh.gradle.ktlint") version "8.2.0"
 }
 
 val ktor_version: String by project
