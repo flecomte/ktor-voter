@@ -8,7 +8,7 @@ plugins {
 val ktor_version: String by project
 
 group = "flecomte"
-version = "1.0.0"
+version = versioning.info.tag
 
 repositories {
     mavenCentral()
