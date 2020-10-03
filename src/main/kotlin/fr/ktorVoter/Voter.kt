@@ -12,20 +12,22 @@ import io.ktor.util.pipeline.PipelineContext
 interface ActionI
 
 /** Interface to implement voter */
-interface Voter {
-    fun supports(action: ActionI, call: ApplicationCall, subject: Any? = null): Boolean
-    fun vote(action: ActionI, call: ApplicationCall, subject: Any? = null): Vote
+interface Voter<C, S> {
+    fun supports(action: ActionI, context: C?, subject: S? = null): Boolean
+    fun vote(action: ActionI, context: C?, subject: S? = null): Vote
+    fun isGranted(lambda: () -> Boolean?): Vote =
+        Vote.isGranted(lambda)
 }
 
 /** Check if in the list of voter, you can make the action for one subject */
-fun List<Voter>.can(action: ActionI, call: ApplicationCall, subject: Any? = null): Boolean = subject
+fun <C> List<Voter<C, Any>>.can(action: ActionI, context: C? = null, subject: Any? = null): Boolean = subject
     /* Convert subject as list */
     .let { if (subject !is List<*>) listOf(subject) else subject }
     /* For each voter, get the vote of all supported voter */
-    .flatMap {
-        filter { it.supports(action, call, it) }
+    .flatMap { sub ->
+        filter { it.supports(action, context, sub) }
             .ifEmpty { throw NoVoterException(action) }
-            .map { it.vote(action, call, it) }
+            .map { it.vote(action, context, sub) }
     }
     /* Check if no one DENIED and if there is at least one GRANTED */
     .run {
@@ -39,7 +41,7 @@ enum class Vote {
     ABSTAIN,
     DENIED;
 
-    /* Helper to convert true/false/null to GRANTED/DENIED/ABSTAIN */
+    /** Helper to convert true/false/null to GRANTED/DENIED/ABSTAIN */
     companion object {
         fun isGranted(lambda: () -> Boolean?): Vote = when (lambda()) {
             true -> GRANTED
@@ -50,7 +52,7 @@ enum class Vote {
 }
 
 /** Variable to store all available voters */
-private val votersAttributeKey = AttributeKey<List<Voter>>("voters")
+private val votersAttributeKey = AttributeKey<List<Voter<ApplicationCall, Any>>>("voters")
 
 /** Extensions */
 fun ApplicationCall.assertCan(action: ActionI, subject: Any? = null) {
@@ -72,7 +74,7 @@ fun PipelineContext<Unit, ApplicationCall>.can(action: ActionI, subject: Any? = 
 class AuthorizationVoter {
     /** Configuration for [AuthorizationVoter] feature. */
     class Configuration {
-        val voters = listOf<Voter>()
+        val voters = listOf<Voter<ApplicationCall, Any>>()
     }
 
     /** Object for installing feature */

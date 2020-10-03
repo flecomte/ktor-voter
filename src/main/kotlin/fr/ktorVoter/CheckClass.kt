@@ -8,7 +8,7 @@ class WrongClassException(
     current: KClass<*>?
 ) : VoterException("Can not define authorization with class $current. Need $expected")
 
-fun Voter.checkClass(
+fun Voter<*, *>.checkClass(
     expected: KClass<*>,
     subject: Any?
 ) {

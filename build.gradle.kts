@@ -19,6 +19,10 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-auth:$ktor_version")
+    testImplementation("io.mockk:mockk:1.9.3")
+    testImplementation("org.amshove.kluent:kluent:1.61")
+    testImplementation(kotlin("test-junit"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.5.0")
 }
 
 tasks {
@@ -28,6 +32,11 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
+}
+
+tasks.test {
+    useJUnit()
+    useJUnitPlatform()
 }
 
 val sourcesJar by tasks.creating(Jar::class) {
