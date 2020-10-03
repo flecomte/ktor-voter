@@ -1,6 +1,6 @@
 package fr.ktorVoter
 
-class Subject (
+class Subject(
     val role: Role
 ) {
     enum class Role {
