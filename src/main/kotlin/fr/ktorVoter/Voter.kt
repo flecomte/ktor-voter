@@ -74,7 +74,7 @@ fun PipelineContext<Unit, ApplicationCall>.can(action: ActionI, subject: Any? = 
 class AuthorizationVoter {
     /** Configuration for [AuthorizationVoter] feature. */
     class Configuration {
-        val voters = listOf<Voter<ApplicationCall, Any>>()
+        var voters = listOf<Voter<ApplicationCall, Any>>()
     }
 
     /** Object for installing feature */
