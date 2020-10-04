@@ -1,39 +1,83 @@
 package fr.ktorVoter
 
+import fr.ktorVoter.VoterTest.TestVoterImplementation.ActionTest
+import org.amshove.kluent.`should be`
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.TestInstance
 import kotlin.test.assertFailsWith
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class VoterTest {
-    private val voters = listOf(VoterImplement<Any, Any>())
+    class TestVoterImplementation() : Voter {
+        enum class ActionTest : ActionI {
+            CREATE,
+            DELETE,
+        }
+
+        override fun invoke(action: Any, context: Any?, subject: Any?): Vote {
+            return if (subject is Subject && action is ActionTest) {
+                when (action) {
+                    ActionTest.CREATE -> Vote.toVote { subject.role == Subject.Role.ADMIN }
+                    ActionTest.DELETE -> Vote.DENIED
+                }
+            } else Vote.ABSTAIN
+        }
+    }
+
+    class Subject(
+        val role: Role
+    ) {
+        enum class Role {
+            ADMIN,
+            USER,
+        }
+    }
+
+
+    @Test
+    fun `test Voter`() {
+        listOf<Voter>(TestVoterImplementation()).can(
+            action = ActionTest.CREATE,
+            subject = Subject(role = Subject.Role.ADMIN)
+        ) `should be` true
+    }
 
     @Test
     fun `test Voter GRANTED`() {
-        assertTrue(voters.can(
-            action = VoterImplement.Action.CREATE,
-            subject = Subject(role = Subject.Role.ADMIN)
-        ))
+        listOf<Voter>(
+            { _, _, _ -> Vote.GRANTED },
+            { _, _, _ -> Vote.ABSTAIN }
+        ).can(
+            action = ActionTest.CREATE,
+            subject = Subject(role = Subject.Role.USER)
+        ) `should be` true
     }
 
     @Test
     fun `test Voter DENIED`() {
-        assertFalse(voters.can(
-            action = VoterImplement.Action.CREATE,
+        listOf<Voter>(
+            { _, _, _ -> Vote.GRANTED },
+            { _, _, _ -> Vote.ABSTAIN },
+            { _, _, _ -> Vote.DENIED }
+        ).can(
+            action = ActionTest.CREATE,
             subject = Subject(role = Subject.Role.USER)
-        ))
-    }
-
-    @Test
-    fun `test Voter DENIED if all ABSTAIN`() {
-        assertFalse(voters.can(VoterImplement.Action.CREATE))
+        ) `should be` false
     }
 
     @Test
     fun `test No Voter`() {
         assertFailsWith<NoVoterException> {
-            voters.can(FakeAction.FAKE)
+            emptyList<Voter>()
+                .can(FakeAction.FAKE)
+        }
+    }
+
+    @Test
+    fun `test All Voter Abstain`() {
+        assertFailsWith<AllVoterAbstainException> {
+            listOf<Voter> { _, _, _ -> Vote.ABSTAIN }
+                .can(object {})
         }
     }
 

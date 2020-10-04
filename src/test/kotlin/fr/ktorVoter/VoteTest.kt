@@ -9,16 +9,16 @@ internal class VoteTest {
 
     @Test
     fun isGranted() {
-        assertEquals(Vote.isGranted { true }, Vote.GRANTED)
+        assertEquals(Vote.toVote { true }, Vote.GRANTED)
     }
 
     @Test
     fun isDenied() {
-        assertEquals(Vote.isGranted { false }, Vote.DENIED)
+        assertEquals(Vote.toVote { false }, Vote.DENIED)
     }
 
     @Test
     fun isAbstain() {
-        assertEquals(Vote.isGranted { null }, Vote.ABSTAIN)
+        assertEquals(Vote.toVote { null }, Vote.ABSTAIN)
     }
 }

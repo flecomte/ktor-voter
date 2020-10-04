@@ -11,29 +11,19 @@ import io.ktor.util.pipeline.PipelineContext
 
 interface ActionI
 
-/** Interface to implement voter */
-interface Voter<C, S> {
-    fun supports(action: ActionI, context: C?, subject: S? = null): Boolean
-    fun vote(action: ActionI, context: C?, subject: S? = null): Vote
-    fun isGranted(lambda: () -> Boolean?): Vote =
-        Vote.isGranted(lambda)
-}
+typealias Voter = (Any, Any?, Any?) -> Vote
 
 /** Check if in the list of voter, you can make the action for one subject */
-fun <C> List<Voter<C, Any>>.can(action: ActionI, context: C? = null, subject: Any? = null): Boolean = subject
-    /* Convert subject as list */
-    .let { if (subject !is List<*>) listOf(subject) else subject }
-    /* For each voter, get the vote of all supported voter */
-    .flatMap { sub ->
-        filter { it.supports(action, context, sub) }
-            .ifEmpty { throw NoVoterException(action) }
-            .map { it.vote(action, context, sub) }
-    }
-    /* Check if no one DENIED and if there is at least one GRANTED */
-    .run {
-        none { it == Vote.DENIED } and
-        any { it == Vote.GRANTED }
-    }
+fun List<Voter>.can(action: Any, context: Any? = null, subject: Any? = null): Boolean =
+    ifEmpty { throw NoVoterException() }
+        /* For each voter, get the vote of all voter */
+        .map {
+            it(action, context, subject)
+        }
+        /* If all Abstain, throw Exception */
+        .apply { if (all { it == Vote.ABSTAIN }) throw AllVoterAbstainException(action) }
+        /* If no one DENIED and if there is at least one GRANTED, grant access */
+        .run { none { it == Vote.DENIED } and any { it == Vote.GRANTED } }
 
 /** Responses of voters */
 enum class Vote {
@@ -43,38 +33,45 @@ enum class Vote {
 
     /** Helper to convert true/false/null to GRANTED/DENIED/ABSTAIN */
     companion object {
-        fun isGranted(lambda: () -> Boolean?): Vote = when (lambda()) {
+        fun toVote(lambda: () -> Boolean?): Vote = when (lambda()) {
             true -> GRANTED
             false -> DENIED
             null -> ABSTAIN
         }
     }
+
+    fun toBool(): Boolean? = when (this) {
+        GRANTED -> true
+        DENIED -> false
+        ABSTAIN -> null
+    }
 }
 
+
 /** Variable to store all available voters */
-private val votersAttributeKey = AttributeKey<List<Voter<ApplicationCall, Any>>>("voters")
+private val votersAttributeKey = AttributeKey<List<Voter>>("voters")
 
 /** Extensions */
-fun ApplicationCall.assertCan(action: ActionI, subject: Any? = null) {
+fun ApplicationCall.assertCan(action: ActionI, subject: Any) {
     if (!can(action, subject)) {
         throw UnauthorizedException(action)
     }
 }
 
-fun ApplicationCall.can(action: ActionI, subject: Any? = null): Boolean =
+fun ApplicationCall.can(action: ActionI, subject: Any): Boolean =
     attributes[votersAttributeKey].can(action, this, subject)
 
-fun PipelineContext<Unit, ApplicationCall>.assertCan(action: ActionI, subject: Any? = null) =
+fun PipelineContext<Unit, ApplicationCall>.assertCan(action: ActionI, subject: Any) =
     context.assertCan(action, subject)
 
-fun PipelineContext<Unit, ApplicationCall>.can(action: ActionI, subject: Any? = null) =
+fun PipelineContext<Unit, ApplicationCall>.can(action: ActionI, subject: Any) =
     context.can(action, subject)
 
 /** Configuration class for ktor */
 class AuthorizationVoter {
     /** Configuration for [AuthorizationVoter] feature. */
     class Configuration {
-        var voters = listOf<Voter<ApplicationCall, Any>>()
+        var voters = listOf<Voter>()
     }
 
     /** Object for installing feature */
@@ -107,6 +104,8 @@ class AuthorizationVoter {
 }
 
 abstract class VoterException(message: String) : Throwable(message)
-class NoVoterException(action: ActionI) : VoterException("No voter found for action '$action'")
-class UnauthorizedException(action: ActionI) : VoterException("Unauthorized for action '$action'")
+class NoVoterException() : VoterException("No voter found")
+class AllVoterAbstainException(action: Any?) : VoterException("""All voter abstain for the action "$action"""")
+class UnauthorizedException(action: ActionI) : VoterException("""Unauthorized for action "$action"""")
 class ForbiddenException(message: String? = null) : Throwable(message)
+
