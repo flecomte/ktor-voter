@@ -7,7 +7,7 @@ plugins {
 
 val ktor_version: String by project
 
-group = "flecomte"
+group = "com.github.flecomte"
 version = versioning.info.tag
 
 repositories {
