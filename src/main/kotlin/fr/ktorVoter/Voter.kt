@@ -16,6 +16,9 @@ fun <C> List<Voter<C>>.can(action: Any, context: C, subject: Any? = null): Boole
         /* If no one DENIED and if there is at least one GRANTED, grant access */
         .run { none { it == Vote.DENIED } and any { it == Vote.GRANTED } }
 
+fun <C> List<Voter<C>>.canAll(action: Any, context: C, subjects: List<Any>): Boolean =
+    subjects.all { can(action, context, it) }
+
 /** Responses of voters */
 enum class Vote {
     GRANTED,

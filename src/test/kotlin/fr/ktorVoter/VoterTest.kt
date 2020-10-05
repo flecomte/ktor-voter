@@ -56,6 +56,18 @@ internal class VoterTest {
     }
 
     @Test
+    fun `test Voter All GRANTED`() {
+        listOf<Voter<Any?>>(
+            { _, _, _ -> Vote.GRANTED },
+            { _, _, _ -> Vote.ABSTAIN }
+        ).canAll(
+            action = ActionTest.CREATE,
+            context = null,
+            subjects = listOf(Subject(role = Subject.Role.USER))
+        ) `should be` true
+    }
+
+    @Test
     fun `test Voter DENIED`() {
         listOf<Voter<Any?>>(
             { _, _, _ -> Vote.GRANTED },
@@ -65,6 +77,19 @@ internal class VoterTest {
             action = ActionTest.CREATE,
             context = null,
             subject = Subject(role = Subject.Role.USER)
+        ) `should be` false
+    }
+
+    @Test
+    fun `test Voter All DENIED`() {
+        listOf<Voter<Any?>>(
+            { _, _, _ -> Vote.GRANTED },
+            { _, _, _ -> Vote.ABSTAIN },
+            { _, _, _ -> Vote.DENIED }
+        ).canAll(
+            action = ActionTest.CREATE,
+            context = null,
+            subjects = listOf(Subject(role = Subject.Role.USER))
         ) `should be` false
     }
 

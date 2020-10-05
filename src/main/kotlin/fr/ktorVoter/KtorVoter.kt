@@ -16,15 +16,27 @@ fun ApplicationCall.assertCan(action: Any, subject: Any? = null) {
         throw UnauthorizedException(action)
     }
 }
+fun ApplicationCall.assertCanAll(action: Any, subject: List<Any>) {
+    assertCan(action, subject)
+}
 
 fun ApplicationCall.can(action: Any, subject: Any? = null): Boolean =
     attributes[votersAttributeKey].can(action, this, subject)
 
+fun ApplicationCall.canAll(action: Any, subjects: List<Any>): Boolean =
+    subjects.all { can(action, it) }
+
 fun PipelineContext<Unit, ApplicationCall>.assertCan(action: Any, subject: Any? = null) =
     context.assertCan(action, subject)
 
+fun PipelineContext<Unit, ApplicationCall>.assertCanAll(action: Any, subject: List<Any>) =
+    context.assertCanAll(action, subject)
+
 fun PipelineContext<Unit, ApplicationCall>.can(action: Any, subject: Any? = null) =
     context.can(action, subject)
+
+fun PipelineContext<Unit, ApplicationCall>.canAll(action: Any, subject: List<Any>) =
+    context.canAll(action, subject)
 
 /** Configuration class for ktor */
 class AuthorizationVoter {
