@@ -16,9 +16,9 @@ fun ApplicationCall.assertCan(action: Any, subject: Any? = null) {
         throw UnauthorizedException(action)
     }
 }
-fun ApplicationCall.assertCanAll(action: Any, subject: List<Any>) {
-    assertCan(action, subject)
-}
+
+fun ApplicationCall.assertCanAll(action: Any, subjects: List<Any>) =
+    subjects.forEach { assertCan(action, it) }
 
 fun ApplicationCall.can(action: Any, subject: Any? = null): Boolean =
     attributes[votersAttributeKey].can(action, this, subject)
