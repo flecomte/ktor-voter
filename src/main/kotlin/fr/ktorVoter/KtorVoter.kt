@@ -6,8 +6,9 @@ import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
+typealias KtorVoter = Voter<ApplicationCall>
 /** Variable to store all available voters */
-private val votersAttributeKey = AttributeKey<List<Voter>>("voters")
+private val votersAttributeKey = AttributeKey<List<KtorVoter>>("voters")
 
 /** Extensions */
 fun ApplicationCall.assertCan(action: Any, subject: Any? = null) {
@@ -29,7 +30,7 @@ fun PipelineContext<Unit, ApplicationCall>.can(action: Any, subject: Any? = null
 class AuthorizationVoter {
     /** Configuration for [AuthorizationVoter] feature. */
     class Configuration {
-        var voters = listOf<Voter>()
+        var voters = listOf<KtorVoter>()
     }
 
     /** Object for installing feature */

@@ -2,10 +2,10 @@ package fr.ktorVoter
 
 interface ActionI
 
-typealias Voter = (Any, Any?, Any?) -> Vote
+typealias Voter<C> = (Any, C, Any?) -> Vote
 
 /** Check if in the list of voter, you can make the action for one subject */
-fun List<Voter>.can(action: Any, context: Any? = null, subject: Any? = null): Boolean =
+fun <C> List<Voter<C>>.can(action: Any, context: C, subject: Any? = null): Boolean =
     ifEmpty { throw NoVoterException() }
         /* For each voter, get the vote of all voter */
         .map {

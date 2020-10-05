@@ -8,7 +8,7 @@ import kotlin.test.assertFailsWith
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class VoterTest {
-    class TestVoterImplementation() : Voter {
+    class TestVoterImplementation() : Voter<Any?> {
         enum class ActionTest : ActionI {
             CREATE,
             DELETE,
@@ -36,31 +36,34 @@ internal class VoterTest {
 
     @Test
     fun `test Voter`() {
-        listOf<Voter>(TestVoterImplementation()).can(
+        listOf<Voter<Any?>>(TestVoterImplementation()).can(
             action = ActionTest.CREATE,
+            context = null,
             subject = Subject(role = Subject.Role.ADMIN)
         ) `should be` true
     }
 
     @Test
     fun `test Voter GRANTED`() {
-        listOf<Voter>(
+        listOf<Voter<Any?>>(
             { _, _, _ -> Vote.GRANTED },
             { _, _, _ -> Vote.ABSTAIN }
         ).can(
             action = ActionTest.CREATE,
+            context = null,
             subject = Subject(role = Subject.Role.USER)
         ) `should be` true
     }
 
     @Test
     fun `test Voter DENIED`() {
-        listOf<Voter>(
+        listOf<Voter<Any?>>(
             { _, _, _ -> Vote.GRANTED },
             { _, _, _ -> Vote.ABSTAIN },
             { _, _, _ -> Vote.DENIED }
         ).can(
             action = ActionTest.CREATE,
+            context = null,
             subject = Subject(role = Subject.Role.USER)
         ) `should be` false
     }
@@ -68,16 +71,16 @@ internal class VoterTest {
     @Test
     fun `test No Voter`() {
         assertFailsWith<NoVoterException> {
-            emptyList<Voter>()
-                .can(FakeAction.FAKE)
+            emptyList<Voter<Any?>>()
+                .can(FakeAction.FAKE, null)
         }
     }
 
     @Test
     fun `test All Voter Abstain`() {
         assertFailsWith<AllVoterAbstainException> {
-            listOf<Voter> { _, _, _ -> Vote.ABSTAIN }
-                .can(object {})
+            listOf<Voter<Any?>> { _, _, _ -> Vote.ABSTAIN }
+                .can(object {}, null)
         }
     }
 
