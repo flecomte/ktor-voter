@@ -19,6 +19,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-auth:$ktor_version")
+    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
     testImplementation("io.mockk:mockk:1.9.3")
     testImplementation("org.amshove.kluent:kluent:1.61")
     testImplementation(kotlin("test-junit"))
