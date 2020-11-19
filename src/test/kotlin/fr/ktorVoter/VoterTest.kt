@@ -33,7 +33,6 @@ internal class VoterTest {
         }
     }
 
-
     @Test
     fun `test Voter`() {
         listOf<Voter<Any?>>(TestVoterImplementation()).can(

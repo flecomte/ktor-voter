@@ -14,9 +14,7 @@ internal class KtorVoterTest {
     fun `test AuthorizationVoter GRANTED`() {
         withTestApplication({
             install(AuthorizationVoter) {
-                voters = listOf(
-                    {_, _, _ -> Vote.GRANTED}
-                )
+                voters = listOf { _, _, _ -> Vote.GRANTED }
             }
         }) {
             val call = handleRequest(HttpMethod.Post, "/user") {
@@ -35,7 +33,7 @@ internal class KtorVoterTest {
         withTestApplication({
             install(AuthorizationVoter) {
                 voters = listOf(
-                    {_, _, _ -> Vote.GRANTED}
+                    { _, _, _ -> Vote.GRANTED }
                 )
             }
         }) {
@@ -55,7 +53,7 @@ internal class KtorVoterTest {
         withTestApplication({
             install(AuthorizationVoter) {
                 voters = listOf(
-                    {_, _, _ -> Vote.DENIED}
+                    { _, _, _ -> Vote.DENIED }
                 )
             }
         }) {
@@ -78,8 +76,8 @@ internal class KtorVoterTest {
         withTestApplication({
             install(AuthorizationVoter) {
                 voters = listOf(
-                    {_, _, _ -> Vote.DENIED},
-                    {_, _, _ -> Vote.GRANTED}
+                    { _, _, _ -> Vote.DENIED },
+                    { _, _, _ -> Vote.GRANTED }
                 )
             }
         }) {

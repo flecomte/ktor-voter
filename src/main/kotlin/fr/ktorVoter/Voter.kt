@@ -41,8 +41,6 @@ enum class Vote {
     }
 }
 
-
 abstract class VoterException(message: String) : Throwable(message)
 class NoVoterException() : VoterException("No voter found")
 class AllVoterAbstainException(action: Any?) : VoterException("""All voter abstain for the action "$action"""")
-
